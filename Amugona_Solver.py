@@ -5,10 +5,14 @@ import random
 import datetime
 import os
 import requests  # API 호출을 위해 requests 모듈 추가
+from dotenv import load_dotenv # API 키 숨기기를 위한 모듈
+
+# .env 파일에서 숨겨진 환경 변수(API 키 등)를 안전하게 불러옵니다.
+load_dotenv()
 
 # --- 설정 변수 ---
-# 카카오 REST API 키를 입력하는 변수입니다. 나중에 키만 복사해서 넣으면 바로 작동합니다.
-KAKAO_API_KEY = "1a890234d0d54f9b0f3313c41d537a9f"
+# 코드 내부에 하드코딩하지 않고, .env 파일에 저장된 KAKAO_API_KEY를 가져옵니다.
+KAKAO_API_KEY = os.getenv("KAKAO_API_KEY")
 
 # --- 전역 변수 (데이터를 저장할 리스트) ---
 menus = []        # 메뉴(또는 벌칙) 후보를 저장할 리스트
