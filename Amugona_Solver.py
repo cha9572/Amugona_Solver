@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox as messagebox
-from tkinter import ttk
+import customtkinter as ctk
 import random
 import datetime
 import os
@@ -78,7 +78,7 @@ def load_restaurants():
         except ValueError:
             req_size = 5 # 숫자가 아닐 경우 기본값
             
-        lbl_location.config(text="📍 현재 탐색 위치: 위치 정보 검색 중...")
+        lbl_location.configure(text="📍 현재 탐색 위치: 위치 정보 검색 중...")
         window.update() # UI 즉각 반영
         
         # 1. 사용자가 직접 입력한 주소가 있는지 확인합니다.
@@ -96,17 +96,17 @@ def load_restaurants():
                 documents = addr_data.get('documents', [])
                 if not documents:
                     messagebox.showerror("위치 오류", "입력하신 주소나 장소를 찾을 수 없습니다.")
-                    lbl_location.config(text="📍 탐색 위치: 검색 실패")
+                    lbl_location.configure(text="📍 탐색 위치: 검색 실패")
                     return
                 
                 # 첫 번째 결과의 좌표와 장소명을 가져옵니다.
                 lat = documents[0].get("y")
                 lon = documents[0].get("x")
                 address_name = documents[0].get("place_name") or documents[0].get("address_name")
-                lbl_location.config(text=f"📍 탐색 위치: {address_name} 주변")
+                lbl_location.configure(text=f"📍 탐색 위치: {address_name} 주변")
             else:
                 messagebox.showerror("API 오류", "주소 검색에 실패했습니다.")
-                lbl_location.config(text="📍 탐색 위치: 오류 발생")
+                lbl_location.configure(text="📍 탐색 위치: 오류 발생")
                 return
         else:
             # 빈칸인 경우: 기존처럼 IP 기반 무료 API를 호출하여 현재 위치를 알아냅니다.
@@ -126,12 +126,12 @@ def load_restaurants():
                     docs = addr_data.get('documents', [])
                     if docs:
                         address_name = docs[0].get('address_name', '알 수 없는 위치')
-                        lbl_location.config(text=f"📍 현재 위치: {address_name}")
+                        lbl_location.configure(text=f"📍 현재 위치: {address_name}")
                 else:
-                    lbl_location.config(text="📍 현재 위치: 주소 변환 실패")
+                    lbl_location.configure(text="📍 현재 위치: 주소 변환 실패")
             else:
                 messagebox.showerror("위치 오류", "현재 위치를 가져오는데 실패했습니다.")
-                lbl_location.config(text="📍 현재 위치: 알 수 없음")
+                lbl_location.configure(text="📍 현재 위치: 알 수 없음")
                 return
             
         # 4. 내 위치 주변 검색에 필요한 파라미터(Parameter) 정보를 설정합니다.
@@ -198,13 +198,14 @@ def show_results():
         return 
         
     # 새로운 창 띄우기
-    roulette_window = tk.Toplevel(window)
+    roulette_window = ctk.CTkToplevel(window)
     roulette_window.title("메뉴 고르는 중...")
     roulette_window.geometry("400x300")
-    roulette_window.configure(bg="#F8FAFC")
+    roulette_window.configure(fg_color="#F8FAFC")
+    roulette_window.attributes('-topmost', True)
     
     # 룰렛 텍스트를 보여줄 라벨
-    lbl_result = tk.Label(roulette_window, text="과연...", font=("Helvetica", 24, "bold"), bg="#F8FAFC", fg="#1E293B")
+    lbl_result = ctk.CTkLabel(roulette_window, text="과연...", font=("Helvetica", 28, "bold"), text_color="#1E293B")
     lbl_result.pack(expand=True, fill=tk.BOTH)
     
     # 애니메이션을 위한 함수
@@ -212,14 +213,14 @@ def show_results():
         if count > 0:
             # 남은 횟수 동안 무작위 메뉴를 빠르게 보여줍니다.
             random_menu = random.choice(menus)
-            lbl_result.config(text=random_menu)
+            lbl_result.configure(text=random_menu)
             # 점점 느려지게 만듭니다 (기본 50ms, 남은 횟수가 적어지면 딜레이 증가)
             delay = 50 + (20 - count) * 15 
             roulette_window.after(delay, animate_roulette, count - 1)
         else:
             # 최종 선택된 메뉴
             final_menu = random.choice(menus)
-            lbl_result.config(text=f"🎉 {final_menu} 🎉", fg="#EF4444")
+            lbl_result.configure(text=f"🎉 {final_menu} 🎉", fg="#EF4444")
             
             # 결과 저장
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -274,13 +275,13 @@ def show_history():
             text_widget = tk.Text(frame_hist, yscrollcommand=scrollbar.set, font=("Helvetica", 12), bg="#FFFFFF", fg="#1E293B", relief="flat")
             text_widget.pack(expand=True, fill=tk.BOTH, padx=15, pady=15)
             
-            scrollbar.config(command=text_widget.yview)
+            scrollbar.configure(command=text_widget.yview)
             
             # 읽어온 텍스트 파일 내용을 Text 위젯에 넣습니다.
             text_widget.insert(tk.END, history_content)
             
             # 사용자가 내용을 수정하지 못하게 '읽기 전용' 상태로 만듭니다.
-            text_widget.config(state=tk.DISABLED)
+            text_widget.configure(state=tk.DISABLED)
             
     except Exception as e:
         messagebox.showerror("읽기 오류", f"기록을 읽어오는 중 오류가 발생했습니다:\n{e}")
@@ -288,10 +289,13 @@ def show_history():
 # --- GUI (그래픽 사용자 인터페이스) 화면 구성 부분 ---
 
 # 1. 메인 창 만들기
-window = tk.Tk()
+ctk.set_appearance_mode("light") # 밝은 테마
+ctk.set_default_color_theme("blue") # 파란색 포인트 테마
+
+window = ctk.CTk()
 window.title("오늘 뭐 먹지? GUI 복불복 사다리") # 프로그램 창의 제목
-window.geometry("600x780") # 화면 하단 UI(초기화 버튼 등)가 잘리지 않도록 세로 길이를 더 늘립니다.
-window.configure(bg="#F4F6F9") # 깔끔하고 모던한 연회색 배경
+window.geometry("600x780") # 화면 세로 길이 늘림
+window.configure(fg_color="#F4F6F9") # 깔끔하고 모던한 연회색 배경
 
 # --- 공통 색상 설정 (디자인 통일성) ---
 BG_COLOR = "#F4F6F9"       # 전체 배경 (연회색)
@@ -302,107 +306,110 @@ DANGER_COLOR = "#F43F5E"   # 서브 포인트 색상 (빨간색/분홍색)
 BTN_TEXT_COLOR = "#FFFFFF" # 버튼 글자색 (흰색)
 
 # 2. 프로그램 제목 라벨(Label) 만들기
-title_label = tk.Label(window, text="🎲 Amugona Solver 🎲", font=("Helvetica", 24, "bold"), bg=BG_COLOR, fg=TEXT_COLOR)
-title_label.pack(pady=(25, 15)) # 위 25, 아래 15 여백
+title_label = ctk.CTkLabel(window, text="🎲 Amugona Solver 🎲", font=("Helvetica", 26, "bold"), text_color=TEXT_COLOR)
+title_label.pack(pady=(25, 15))
 
 # --- 데이터를 입력하고 보여줄 중간 영역(프레임) 구성 ---
-frame_main = tk.Frame(window, bg=BG_COLOR)
+frame_main = ctk.CTkFrame(window, fg_color=BG_COLOR)
 frame_main.pack(pady=5, fill=tk.BOTH, expand=True, padx=25)
 
-# [메뉴 관리 (단일 하얀색 카드 형태)]
-frame_right = tk.Frame(frame_main, bg=CARD_COLOR, highlightbackground="#E2E8F0", highlightthickness=1, bd=0)
+# [메뉴 관리 (단일 하얀색 둥근 카드 형태)]
+frame_right = ctk.CTkFrame(frame_main, fg_color=CARD_COLOR, corner_radius=15, border_width=1, border_color="#E2E8F0")
 frame_right.pack(expand=True, fill=tk.BOTH)
 
 # 카드 내부 여백을 위한 프레임
-right_inner = tk.Frame(frame_right, bg=CARD_COLOR)
+right_inner = ctk.CTkFrame(frame_right, fg_color="transparent")
 right_inner.pack(padx=20, pady=20, fill=tk.BOTH, expand=True)
 
-label_menu = tk.Label(right_inner, text="🍽️ 메뉴/벌칙", font=("Helvetica", 14, "bold"), bg=CARD_COLOR, fg=TEXT_COLOR)
+label_menu = ctk.CTkLabel(right_inner, text="🍽️ 메뉴/벌칙", font=("Helvetica", 18, "bold"), text_color=TEXT_COLOR)
 label_menu.pack(pady=(0, 10))
 
 # 입력창과 버튼을 나란히 놓기 위한 프레임
-input_frame_m = tk.Frame(right_inner, bg=CARD_COLOR)
+input_frame_m = ctk.CTkFrame(right_inner, fg_color="transparent")
 input_frame_m.pack(fill=tk.X, pady=(0, 10))
 
 # 메뉴 입력창(Entry)
-entry_menu = tk.Entry(input_frame_m, font=("Helvetica", 12), relief="solid", bd=1)
-entry_menu.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5, padx=(0, 8))
+entry_menu = ctk.CTkEntry(input_frame_m, font=("Helvetica", 14), corner_radius=8, height=38, border_color="#CBD5E1")
+entry_menu.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 8))
 entry_menu.bind("<Return>", lambda event: add_menu())
 
-btn_add_menu = tk.Button(input_frame_m, text="추가", command=add_menu, font=("Helvetica", 11, "bold"), bg=DANGER_COLOR, fg=BTN_TEXT_COLOR, relief="flat", cursor="hand2")
-btn_add_menu.pack(side=tk.RIGHT, ipady=3, ipadx=8)
+btn_add_menu = ctk.CTkButton(input_frame_m, text="추가", command=add_menu, font=("Helvetica", 14, "bold"), fg_color=DANGER_COLOR, hover_color="#BE123C", corner_radius=8, width=70, height=38)
+btn_add_menu.pack(side=tk.RIGHT)
 
-# [새로 추가된 부분] API 추가 설정 영역 (개수 설정 및 위치 표시)
-api_setting_frame = tk.Frame(right_inner, bg=CARD_COLOR)
+# API 추가 설정 영역 (개수 설정 및 위치 표시)
+api_setting_frame = ctk.CTkFrame(right_inner, fg_color="transparent")
 api_setting_frame.pack(fill=tk.X, pady=(0, 10))
 
 # 사용자 직접 주소 입력 프레임
-addr_frame = tk.Frame(api_setting_frame, bg=CARD_COLOR)
+addr_frame = ctk.CTkFrame(api_setting_frame, fg_color="transparent")
 addr_frame.pack(fill=tk.X, pady=(0, 5))
 
-lbl_addr = tk.Label(addr_frame, text="기준 주소 (비우면 현재 위치):", font=("Helvetica", 10), bg=CARD_COLOR, fg=TEXT_COLOR)
+lbl_addr = ctk.CTkLabel(addr_frame, text="기준 주소 (비우면 현재 위치):", font=("Helvetica", 13), text_color=TEXT_COLOR)
 lbl_addr.pack(side=tk.LEFT, padx=(0, 5))
 
-entry_address = tk.Entry(addr_frame, font=("Helvetica", 10), relief="solid", bd=1)
+entry_address = ctk.CTkEntry(addr_frame, font=("Helvetica", 13), corner_radius=8, height=32, border_color="#CBD5E1")
 entry_address.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
 # 위치 정보 라벨
-lbl_location = tk.Label(api_setting_frame, text="📍 탐색 위치: 아직 검색되지 않음", font=("Helvetica", 10), bg=CARD_COLOR, fg="#64748B")
+lbl_location = ctk.CTkLabel(api_setting_frame, text="📍 탐색 위치: 아직 검색되지 않음", font=("Helvetica", 12), text_color="#64748B")
 lbl_location.pack(side=tk.TOP, anchor="w", pady=(0, 5))
 
 # 설정 입력란을 담을 프레임 (카테고리 + 개수)
-count_frame = tk.Frame(api_setting_frame, bg=CARD_COLOR)
+count_frame = ctk.CTkFrame(api_setting_frame, fg_color="transparent")
 count_frame.pack(side=tk.TOP, fill=tk.X)
 
 # 카테고리 콤보박스 추가
 categories = ["전체", "한식", "중식", "일식", "양식", "분식", "카페", "술집"]
-combo_category = ttk.Combobox(count_frame, values=categories, state="readonly", width=5, font=("Helvetica", 11))
+combo_category = ctk.CTkComboBox(count_frame, values=categories, state="readonly", font=("Helvetica", 13), corner_radius=8, width=90, height=32)
 combo_category.set("전체") # 기본값
 combo_category.pack(side=tk.LEFT, padx=(0, 10))
 
-lbl_count = tk.Label(count_frame, text="추가할 개수 (1~15):", font=("Helvetica", 11), bg=CARD_COLOR, fg=TEXT_COLOR)
+lbl_count = ctk.CTkLabel(count_frame, text="추가할 개수:", font=("Helvetica", 13), text_color=TEXT_COLOR)
 lbl_count.pack(side=tk.LEFT, padx=(0, 5))
 
-# 개수 조절을 위한 Spinbox 추가
-spin_count = tk.Spinbox(count_frame, from_=1, to=15, width=4, font=("Helvetica", 11), relief="solid", bd=1)
-spin_count.delete(0, "end")
-spin_count.insert(0, 5) # 기본값 5로 설정
+# 개수 조절을 위한 CTkOptionMenu
+spin_count = ctk.CTkOptionMenu(count_frame, values=[str(i) for i in range(1, 16)], font=("Helvetica", 13), corner_radius=8, width=65, height=32, fg_color="#F1F5F9", button_color="#E2E8F0", button_hover_color="#CBD5E1", text_color=TEXT_COLOR)
+spin_count.set("5") # 기본값 5로 설정
 spin_count.pack(side=tk.LEFT)
 
-# [수정된 부분] 내 위치 주변 식당 불러오기 버튼 (API 연동)
-btn_load_api = tk.Button(right_inner, text="🔍 내 위치 주변 식당 불러오기", command=load_restaurants, font=("Helvetica", 11, "bold"), bg="#F59E0B", fg="white", relief="flat", cursor="hand2")
-btn_load_api.pack(fill=tk.X, pady=(0, 10), ipady=3)
+# 내 위치 주변 식당 불러오기 버튼 (API 연동)
+btn_load_api = ctk.CTkButton(right_inner, text="🔍 내 위치 주변 식당 불러오기", command=load_restaurants, font=("Helvetica", 14, "bold"), fg_color="#F59E0B", hover_color="#D97706", corner_radius=8, height=42)
+btn_load_api.pack(fill=tk.X, pady=(0, 10))
 
-# 메뉴 명단을 보여줄 리스트박스(Listbox)
-listbox_menus = tk.Listbox(right_inner, font=("Helvetica", 12), selectbackground=DANGER_COLOR, selectforeground="white", relief="solid", bd=1, highlightthickness=0)
-listbox_menus.pack(fill=tk.BOTH, expand=True)
+# 리스트박스 (둥근 테두리를 위해 프레임으로 감쌈)
+list_frame = ctk.CTkFrame(right_inner, corner_radius=8, border_width=1, border_color="#CBD5E1", fg_color="#FFFFFF")
+list_frame.pack(fill=tk.BOTH, expand=True)
+
+# 리스트박스 자체는 tk를 쓰지만 테두리 없이 깔끔하게
+listbox_menus = tk.Listbox(list_frame, font=("Helvetica", 14), selectbackground=DANGER_COLOR, selectforeground="white", relief="flat", bd=0, highlightthickness=0)
+listbox_menus.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
 # 리스트박스 항목을 선택하고 Delete 또는 BackSpace 키를 누르면 바로 삭제되도록 연결
 listbox_menus.bind("<Delete>", delete_menu)
 listbox_menus.bind("<BackSpace>", delete_menu)
 
 # 버튼들을 나란히 배치하기 위한 프레임
-action_btn_frame = tk.Frame(right_inner, bg=CARD_COLOR)
+action_btn_frame = ctk.CTkFrame(right_inner, fg_color="transparent")
 action_btn_frame.pack(fill=tk.X, pady=(10, 0))
 
 # 리스트박스 아래에 '선택 삭제' 버튼 추가
-btn_delete_menu = tk.Button(action_btn_frame, text="❌ 선택 삭제 (Del)", command=delete_menu, font=("Helvetica", 10, "bold"), bg="#E2E8F0", fg=TEXT_COLOR, relief="flat", cursor="hand2")
-btn_delete_menu.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5), ipady=3)
+btn_delete_menu = ctk.CTkButton(action_btn_frame, text="❌ 선택 삭제 (Del)", command=delete_menu, font=("Helvetica", 13, "bold"), fg_color="#E2E8F0", hover_color="#CBD5E1", text_color=TEXT_COLOR, corner_radius=8, height=38)
+btn_delete_menu.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
 
 # 전체 초기화 버튼 추가
-btn_clear_menu = tk.Button(action_btn_frame, text="🗑️ 전체 초기화", command=clear_menu, font=("Helvetica", 10, "bold"), bg="#CBD5E1", fg=TEXT_COLOR, relief="flat", cursor="hand2")
-btn_clear_menu.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(5, 0), ipady=3)
+btn_clear_menu = ctk.CTkButton(action_btn_frame, text="🗑️ 전체 초기화", command=clear_menu, font=("Helvetica", 13, "bold"), fg_color="#CBD5E1", hover_color="#94A3B8", text_color=TEXT_COLOR, corner_radius=8, height=38)
+btn_clear_menu.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(5, 0))
 
 # --- 화면 하단의 동작 버튼 (결과 보기, 기록 보기) 영역 ---
-frame_bottom = tk.Frame(window, bg=BG_COLOR)
+frame_bottom = ctk.CTkFrame(window, fg_color="transparent")
 frame_bottom.pack(pady=(15, 25))
 
 # 결과 보기 버튼 (초록색 포인트로 눈에 띄게)
-btn_result = tk.Button(frame_bottom, text="🎉 결과 보기 🎉", command=show_results, font=("Helvetica", 15, "bold"), bg="#10B981", fg="white", relief="flat", width=16, height=2, cursor="hand2")
+btn_result = ctk.CTkButton(frame_bottom, text="🎉 결과 보기 🎉", command=show_results, font=("Helvetica", 18, "bold"), fg_color="#10B981", hover_color="#059669", corner_radius=12, width=170, height=50)
 btn_result.pack(side=tk.LEFT, padx=15)
 
 # 기록 보기 버튼 (부드러운 회색)
-btn_history = tk.Button(frame_bottom, text="📜 기록 보기", command=show_history, font=("Helvetica", 13, "bold"), bg="#64748B", fg="white", relief="flat", width=12, height=2, cursor="hand2")
+btn_history = ctk.CTkButton(frame_bottom, text="📜 기록 보기", command=show_history, font=("Helvetica", 16, "bold"), fg_color="#64748B", hover_color="#475569", corner_radius=12, width=130, height=50)
 btn_history.pack(side=tk.LEFT, padx=15)
 
 # 3. 메인 루프 실행 (GUI 프로그램의 핵심!)
