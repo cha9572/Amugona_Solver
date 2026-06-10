@@ -195,7 +195,7 @@ def load_restaurants():
 def show_results():
     """
     결과 보기 버튼을 누를 때 실행되는 함수입니다.
-    메뉴들 중 하나를 무작위로 선택하는 룰렛 애니메이션을 보여줍니다.
+    글자가 가로로 빠르게 이동하다가 천천히 멈추는 슬롯 애니메이션을 보여줍니다.
     """
     if not menus:
         messagebox.showwarning("경고", "메뉴를 최소 1개 이상 입력해주세요!")
@@ -204,27 +204,78 @@ def show_results():
     # 새로운 창 띄우기
     roulette_window = ctk.CTkToplevel(window)
     roulette_window.title("메뉴 고르는 중...")
-    roulette_window.geometry("400x300")
+    roulette_window.geometry("600x250")
     roulette_window.configure(fg_color="#F8FAFC")
     roulette_window.attributes('-topmost', True)
+    roulette_window.grab_set() # 다른 창 클릭 방지
     
-    # 룰렛 텍스트를 보여줄 라벨
-    lbl_result = ctk.CTkLabel(roulette_window, text="과연...", font=("Helvetica", 28, "bold"), text_color="#1E293B")
-    lbl_result.pack(expand=True, fill=tk.BOTH)
+    # 캔버스 생성 (슬라이딩 애니메이션용)
+    canvas = tk.Canvas(roulette_window, width=600, height=250, bg="#F8FAFC", highlightthickness=0)
+    canvas.pack(expand=True, fill=tk.BOTH)
     
-    # 애니메이션을 위한 함수
-    def animate_roulette(count):
-        if count > 0:
-            # 남은 횟수 동안 무작위 메뉴를 빠르게 보여줍니다.
-            random_menu = random.choice(menus)
-            lbl_result.configure(text=random_menu)
-            # 점점 느려지게 만듭니다 (기본 50ms, 남은 횟수가 적어지면 딜레이 증가)
-            delay = 50 + (20 - count) * 15 
-            roulette_window.after(delay, animate_roulette, count - 1)
+    # 애니메이션을 위한 메뉴 리스트 생성 (가짜 메뉴들 뒤에 진짜 결과 1개 배치)
+    sequence = [random.choice(menus) for _ in range(40)]
+    final_menu = sequence[-1] # 맨 마지막이 최종 당첨 메뉴
+    
+    text_ids = []
+    spacing = 300 # 각 글자 사이의 간격
+    center_x = 300
+    center_y = 125
+    
+    # 캔버스에 텍스트 미리 그려놓기 (위치는 나중에 조정됨)
+    for i, menu in enumerate(sequence):
+        # 처음에는 화면 밖에 배치
+        text_id = canvas.create_text(center_x + i * spacing, center_y, text=menu, font=("Helvetica", 24, "bold"), fill="#94A3B8")
+        text_ids.append(text_id)
+        
+    # 가운데 선택 영역 표시 (위/아래 삼각형)
+    canvas.create_polygon(300, 45, 280, 20, 320, 20, fill="#EF4444")
+    canvas.create_polygon(300, 205, 280, 230, 320, 230, fill="#EF4444")
+    
+    # 애니메이션 설정
+    total_distance = (len(sequence) - 1) * spacing
+    duration = 5000  # 5초 동안 진행
+    fps = 60
+    interval = 1000 // fps
+    steps = duration // interval
+    
+    current_step = [0]
+    
+    def ease_out_cubic(t):
+        # 1 - (1-t)^3 공식으로 갈수록 느려지는 효과
+        return 1 - pow(1 - t, 3)
+
+    def animate():
+        if not roulette_window.winfo_exists():
+            return # 창이 닫혔으면 중지
+            
+        current_step[0] += 1
+        t = current_step[0] / steps
+        
+        if t >= 1:
+            t = 1
+            
+        # ease out 공식 적용
+        progress = ease_out_cubic(t)
+        current_offset = total_distance * progress
+        
+        # 텍스트 위치 업데이트
+        for i, text_id in enumerate(text_ids):
+            x = center_x + i * spacing - current_offset
+            canvas.coords(text_id, x, center_y)
+            
+            # 중앙에 가까운 텍스트는 강조
+            if abs(x - center_x) < spacing / 2.5:
+                canvas.itemconfig(text_id, fill="#1E293B", font=("Helvetica", 32, "bold"))
+            else:
+                canvas.itemconfig(text_id, fill="#94A3B8", font=("Helvetica", 24, "bold"))
+                
+        if t < 1:
+            roulette_window.after(interval, animate)
         else:
-            # 최종 선택된 메뉴
-            final_menu = random.choice(menus)
-            lbl_result.configure(text=f"🎉 {final_menu} 🎉", fg="#EF4444")
+            # 애니메이션 종료 (최종 당첨)
+            canvas.itemconfig(text_ids[-1], fill="#EF4444", font=("Helvetica", 40, "bold"))
+            canvas.create_text(center_x, center_y - 60, text="🎉 당첨 🎉", font=("Helvetica", 24, "bold"), fill="#EF4444")
             
             # 결과 저장
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -238,8 +289,8 @@ def show_results():
             except Exception as e:
                 messagebox.showerror("저장 오류", f"기록을 저장하는 중 오류가 발생했습니다:\n{e}")
                 
-    # 룰렛 애니메이션 시작 (20번 변경)
-    animate_roulette(20)
+    # 애니메이션 시작
+    animate()
 
 def show_history():
     """
