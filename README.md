@@ -44,6 +44,35 @@
 
 ---
 
+## ⚙️ 6. 설치 및 실행 방법
+
+### 1. 필수 라이브러리 설치
+본 프로그램을 정상적으로 실행하려면 외부 라이브러리 설치가 필요합니다. 터미널이나 명령 프롬프트(CMD)를 열고 프로젝트 폴더로 이동한 뒤, 아래 명령어를 통해 필수 라이브러리를 설치해 주세요.
+
+```bash
+pip install customtkinter requests python-dotenv
+```
+*(Mac 환경의 경우 `pip3 install customtkinter requests python-dotenv`를 입력하세요.)*
+
+### 2. 카카오 REST API 키 발급 및 설정 (필수)
+주변 식당을 검색하고 불러오는 기능을 사용하려면 **카카오 로컬 API 키**가 반드시 필요합니다.
+1. [Kakao Developers(카카오 디벨로퍼스)](https://developers.kakao.com/)에 접속 및 로그인하여 애플리케이션을 새로 추가합니다.
+2. '앱 키' 메뉴로 이동하여 **REST API 키**를 복사합니다.
+3. 프로젝트 폴더(`Amugona_Solver.py` 파일과 동일한 위치)에 `.env`라는 이름의 파일을 새로 만들고, 아래와 같이 작성하여 저장합니다.
+   ```env
+   KAKAO_API_KEY=발급받은_자신의_REST_API_키_여기에_붙여넣기
+   ```
+
+### 3. 프로그램 실행
+라이브러리 설치와 API 키 설정이 모두 끝났다면 아래 명령어로 프로그램을 실행할 수 있습니다.
+
+```bash
+python Amugona_Solver.py
+```
+*(Mac 환경의 경우 `python3 Amugona_Solver.py`를 입력하세요.)*
+
+---
+
 ## ⚠️ 서약 및 유의사항
 > 🚦 **가이드북 핵심 규칙 준수 의무**
 > 1. AI 도구(ChatGPT 등)를 사용하여 코드를 작성할 경우, 반드시 활용 내역을 README에 투명하게 기록하겠습니다.
